@@ -152,32 +152,51 @@ class ProcessScheduler {
 fun main() {
     val scheduler = ProcessScheduler()
 
-    println("是否创建示例进程？(Y/n)")
-    if (readLine()?.uppercase().let { it == "Y" || it.isNullOrEmpty() }) {
+    confirmAction("是否创建示例进程？") {
         scheduler.createProcess("Notepad.exe", 5, 3)
         scheduler.createProcess("Calc.exe", 5, 3)
         scheduler.createProcess("SYSTEM", 10, 3)
+        println("已加入示例进程")
+        scheduler.showProcessList()
     }
 
+    println("您可以在调度之前创建新进程：")
     while (true) {
-        print("请输入要创建的进程名(为空则结束创建过程)：")
-        val name = readLine()
-        if (name.isNullOrEmpty()) break
-
-        print("请输入运行时间(若小于等于0或为无效整数则结束创建过程)：")
-        val time = readLine()?.toLong() ?: break
-        if (time <= 0) break
-
-        print("请输入优先级(若小于等于0或为无效整数则结束创建过程)：")
-        val priority = readLine()?.toInt() ?: break
-        if (priority <= 0) break
-
-        scheduler.createProcess(name, priority, time)
+        if (requireUserCreateProcess(scheduler)) break
     }
 
     while (true) {
         scheduler.showProcessList()
+
+        confirmAction("是否创建新进程？", defaultDo = false) {
+            requireUserCreateProcess(scheduler)
+        }
+
         if (!scheduler.schedule()) break
     }
 
+}
+
+private fun requireUserCreateProcess(scheduler: ProcessScheduler): Boolean {
+    print("请输入要创建的进程名(为空则结束创建过程)：")
+    val name = readLine()
+    if (name.isNullOrEmpty()) return true
+
+    print("请输入运行时间(若小于等于0或为无效整数则结束创建过程)：")
+    val time = readLine()?.toLong() ?: return true
+    if (time <= 0) return true
+
+    print("请输入优先级(若小于等于0或为无效整数则结束创建过程)：")
+    val priority = readLine()?.toInt() ?: return true
+    if (priority <= 0) return true
+
+    scheduler.createProcess(name, priority, time)
+    return false
+}
+
+inline fun confirmAction(tips: String, defaultDo: Boolean = true, block: () -> Unit) {
+    print(tips + (if (defaultDo) "(Y/n)" else "(y/N)"))
+    if (readLine()?.uppercase().let { (it.isNullOrEmpty() && defaultDo) || it == "Y" }) {
+        block()
+    }
 }
