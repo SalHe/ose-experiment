@@ -111,12 +111,22 @@ class MemoryManager(blockCount: Int, val blockSize: Int) {
 
     fun display() {
         // 这样效率蛮低的
+        print("当前内存块位示图：")
         for (block in 0 until memoryBitmap.size()) {
             if (block % 8 == 0) println()
             print(if (memoryBitmap[block]) 1 else 0)
             print(" ")
         }
         println()
+
+        println("作业：")
+        jobs.forEach { job ->
+            println("作业名：${job.name}, 页表(页 -> 块)：" + buildString {
+                job.pages.forEachIndexed { index, i ->
+                    append("$index->$i ")
+                }
+            })
+        }
     }
 
 }
@@ -125,7 +135,6 @@ fun main() {
     val memoryManager = MemoryManager(64, 1)
 
     while (true) {
-        print("当前内存块位示图：")
         memoryManager.display()
 
         println("请输入您接下来的操作：N.创建作业 F.销毁作业 Q.退出")
