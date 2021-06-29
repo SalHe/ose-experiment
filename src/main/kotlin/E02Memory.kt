@@ -4,15 +4,6 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.math.ceil
 
-// 在分页管理方式下采用位示图来表示主存分配情况，实现主存分配和回收
-// 要求:
-// 1.	假定系统的主存被分成大小相等的64个块，用0/1对应空闲/占用。
-// 2.	当要装入一个作业时，根据作业对主存的需求量，先查空闲块数是否能满足作业要求，若能满足，则查位示图，修改位示图和空闲块数。位置与块号的对应关系为：
-// 块号=j*8+i，其中i表示位，j表示字节。
-// 根据分配的块号建立页表。页表包括两项：页号和块号。
-// 3.	回收时，修改位示图和空闲块数。
-// 要求能接受来自键盘的空间申请及释放请求，能显示位示图和空闲块数的变化，能显示进程的页表。
-
 class Bitmap private constructor(private val bitsCount: Int) {
 
     private val bitmap = ByteArray(ceil(bitsCount / 8.0f).toInt())
