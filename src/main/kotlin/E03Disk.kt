@@ -3,21 +3,13 @@ package ose.processing
 import kotlin.math.ceil
 
 /**
- * 逻辑块
- *
- * @property id 逻辑块号ID
- */
-@JvmInline
-value class Block(val id: Int)
-
-/**
  * 空闲磁盘块描述
  *
  * @property block 起始空闲块
  * @property count 空闲块数目
  */
 data class FreeBlock(
-    val block: Block,
+    val block: Int,
     val count: Int
 )
 
@@ -31,7 +23,7 @@ data class FreeBlock(
 data class FAT(
     val fileName: String,
     val size: Int,
-    val blockTable: Array<Block>
+    val blockTable: IntArray
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -74,7 +66,7 @@ class Disk(
      *
      * @param block 逻辑块
      */
-    fun seek(block: Block) {
+    fun seek(block: Int) {
         PhysicalSector.fromBlock(block, this).let {
             println("柱面：${it.cylinder}, 磁道：${it.track}, 扇区：${it.sector}")
         }
@@ -104,10 +96,10 @@ data class PhysicalSector(
          * @param disk 磁盘
          */
         @JvmStatic
-        fun fromBlock(block: Block, disk: Disk) = PhysicalSector(
-            cylinder = block.id / disk.trackCount / disk.sectorCount,
-            track = (block.id / disk.sectorCount) % 60,
-            sector = block.id % disk.sectorCount
+        fun fromBlock(block: Int, disk: Disk) = PhysicalSector(
+            cylinder = block / disk.trackCount / disk.sectorCount,
+            track = (block / disk.sectorCount) % 60,
+            sector = block % disk.sectorCount
         )
     }
 
@@ -123,7 +115,7 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
 
     private val totalBlock: Int = disk.totalSectorCount
 
-    private val freeBlocks = mutableListOf(FreeBlock(Block(0), totalBlock)) // 默认全部空闲
+    private val freeBlocks = mutableListOf(FreeBlock(0, totalBlock)) // 默认全部空闲
     private val files = mutableListOf<FAT>()
     private var restBlock = totalBlock
 
@@ -137,12 +129,12 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         val blockTable = IntArray(sizeInBlock)
         var p = 0
         while (p < sizeInBlock) {
-            blockTable[p] = freeBlocks[0].block.id
+            blockTable[p] = freeBlocks[0].block
             p++
             if (freeBlocks[0].count - 1 == 0) {
                 freeBlocks.removeAt(0)
             } else {
-                val block = Block(freeBlocks[0].block.id + 1)
+                val block = freeBlocks[0].block + 1
                 seekDisk(block)
                 // 频繁分配新对象，效率不高（不过只考虑实现，所以不考虑此问题）
                 freeBlocks[0] =
@@ -153,11 +145,11 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
             }
         }
         restBlock -= sizeInBlock
-        files.add(FAT(fileName, size, blockTable.map { Block(it) }.toTypedArray()))
+        files.add(FAT(fileName, size, blockTable))
         return true
     }
 
-    private fun seekDisk(block: Block) {
+    private fun seekDisk(block: Int) {
         disk.seek(block)
     }
 
@@ -169,13 +161,13 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         var blockId = -1
         var count = 0
         fat.blockTable.forEach {
-            if (blockId + count == it.id) {
+            if (blockId + count == it) {
                 count++
             } else {
                 if (blockId >= 0) {
-                    blocks.add(FreeBlock(Block(blockId), count))
+                    blocks.add(FreeBlock(blockId, count))
                 } else {
-                    blockId = it.id
+                    blockId = it
                     count = 0
                 }
             }
