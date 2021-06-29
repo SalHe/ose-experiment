@@ -1,5 +1,7 @@
 package ose.processing
 
+import java.io.File
+import java.io.IOException
 import kotlin.math.ceil
 
 /**
@@ -123,8 +125,10 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         val sizeInBlock = ceil((size / blockSize).toDouble()).toInt()
         println("正在创建文件：$fileName")
         if (sizeInBlock > restBlock) {
-            println("剩余磁盘空间不足！")
-            return false
+            throw IOException("磁盘空间不足")
+        }
+        if (files.any { it.fileName == fileName }) {
+            throw FileAlreadyExistsException(File(fileName))
         }
         val blockTable = IntArray(sizeInBlock)
         var p = 0
@@ -217,7 +221,7 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
      * 展示磁盘占用
      *
      */
-    fun displayFreeBlock() {
+    fun showUsageInfo() {
         println("剩余空闲块数：$restBlock")
         freeBlocks.forEach {
             println("起始空闲块：${it.block}，块数：${it.count}")
@@ -231,10 +235,43 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
 
 fun main() {
     val diskManager = DiskManager(Disk(200, 20, 6))
-    diskManager.createFile("README.md", 20)
-    diskManager.createFile("hello.cpp", 1)
-    diskManager.createFile("numcpp.cpp", 5)
-    diskManager.displayFreeBlock()
-    diskManager.deleteFile("hello.cpp")
-    diskManager.displayFreeBlock()
+    // diskManager.createFile("README.md", 20)
+    // diskManager.createFile("hello.cpp", 1)
+    // diskManager.createFile("numcpp.cpp", 5)
+    // diskManager.displayFreeBlock()
+    // diskManager.deleteFile("hello.cpp")
+    // diskManager.displayFreeBlock()
+
+    while (true) {
+        diskManager.showUsageInfo()
+        println("N.创建文件 D.删除文件 Q.退出")
+        val command = readLine() ?: continue
+        when (command.uppercase()) {
+            "N" -> {
+                println("请输入文件名：")
+                val fileName = readLine() ?: continue
+                println("请输入文件大小：")
+                val size = readLine()?.toInt() ?: continue
+                try {
+                    diskManager.createFile(fileName, size)
+                } catch (e: FileAlreadyExistsException) {
+                    println("文件已存在")
+                } catch (e: IOException) {
+                    println(e.message)
+                }
+            }
+            "D" -> {
+                println("请输入欲删除文件的文件名：")
+                val fileName = readLine() ?: continue
+                if (diskManager.deleteFile(fileName)) {
+                    println("删除成功")
+                } else {
+                    println("删除失败，文件不存在")
+                }
+            }
+            "Q" -> {
+                break
+            }
+        }
+    }
 }
