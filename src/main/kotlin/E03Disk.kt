@@ -157,6 +157,40 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         val id = files.indexOfFirst { it.fileName == fileName }
         if (id < 0) return false
         val fat = files.removeAt(id)
+
+        val blocks = collectFreeBlocks(fat)
+        mergeFreeBlocks(blocks)
+
+        restBlock += fat.blockTable.size
+
+        return true
+    }
+
+    /**
+     * 合并空闲块
+     *
+     * @param blocks 空闲块
+     */
+    private fun mergeFreeBlocks(blocks: MutableList<FreeBlock>) {
+        freeBlocks.addAll(blocks)
+        freeBlocks.sortBy { it.block }
+        var i = freeBlocks.size - 1
+        while (i > 0) {
+            if (freeBlocks[i - 1].block + freeBlocks[i - 1].count == freeBlocks[i].block) {
+                freeBlocks[i - 1] = freeBlocks[i - 1].copy(count = freeBlocks[i - 1].count + freeBlocks[i].count)
+                freeBlocks.removeAt(i)
+            }
+            i--
+        }
+    }
+
+    /**
+     * 收集文件的块
+     *
+     * @param fat
+     * @return
+     */
+    private fun collectFreeBlocks(fat: FAT): MutableList<FreeBlock> {
         val blocks = mutableListOf<FreeBlock>()
         var blockId = -1
         var count = 0
@@ -168,14 +202,15 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
                     blocks.add(FreeBlock(blockId, count))
                 } else {
                     blockId = it
-                    count = 0
+                    count = 1
                 }
             }
         }
-
-        // TODO 将blocks与freeBlocks合并
-
-        return true
+        if (blocks.lastOrNull()?.block != blockId) {
+            // 说明最后的空闲块没有加入到列表中，所以需要特殊处理一下
+            blocks.add(FreeBlock(blockId, count))
+        }
+        return blocks
     }
 
     /**
@@ -200,6 +235,6 @@ fun main() {
     diskManager.createFile("hello.cpp", 1)
     diskManager.createFile("numcpp.cpp", 5)
     diskManager.displayFreeBlock()
-    diskManager.deleteFile("numcpp.cpp")
+    diskManager.deleteFile("hello.cpp")
     diskManager.displayFreeBlock()
 }
