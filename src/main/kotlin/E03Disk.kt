@@ -2,14 +2,32 @@ package ose.processing
 
 import kotlin.math.ceil
 
+/**
+ * 逻辑块
+ *
+ * @property id 逻辑块号ID
+ */
 @JvmInline
 value class Block(val id: Int)
 
+/**
+ * 空闲磁盘块描述
+ *
+ * @property block 起始空闲块
+ * @property count 空闲块数目
+ */
 data class FreeBlock(
     val block: Block,
     val count: Int
 )
 
+/**
+ * 文件分配表项
+ *
+ * @property fileName 文件名
+ * @property size 文件大小
+ * @property blockTable 分配磁盘块表
+ */
 data class FAT(
     val fileName: String,
     val size: Int,
@@ -36,6 +54,13 @@ data class FAT(
     }
 }
 
+/**
+ * 磁盘
+ *
+ * @property cylinderCount 柱面数
+ * @property trackCount 磁道数（每个盘面上的磁道数）
+ * @property sectorCount 扇区数（每个盘面上的扇区数）
+ */
 class Disk(
     val cylinderCount: Int,
     val trackCount: Int,
@@ -44,6 +69,11 @@ class Disk(
 
     val totalSectorCount = cylinderCount * trackCount * sectorCount
 
+    /**
+     * 寻道至对应的逻辑块
+     *
+     * @param block 逻辑块
+     */
     fun seek(block: Block) {
         PhysicalSector.fromBlock(block, this).let {
             println("柱面：${it.cylinder}, 磁道：${it.track}, 扇区：${it.sector}")
@@ -52,6 +82,13 @@ class Disk(
 
 }
 
+/**
+ * 物理扇区，描述一个具体扇区的物理位置
+ *
+ * @property cylinder 柱面号
+ * @property track 磁道号
+ * @property sector 扇区号
+ */
 data class PhysicalSector(
     val cylinder: Int,
     val track: Int,
@@ -59,6 +96,13 @@ data class PhysicalSector(
 ) {
 
     companion object {
+
+        /**
+         * 将逻辑块转换到对应磁盘的物理扇区描述
+         *
+         * @param block 逻辑块
+         * @param disk 磁盘
+         */
         @JvmStatic
         fun fromBlock(block: Block, disk: Disk) = PhysicalSector(
             cylinder = block.id / disk.trackCount / disk.sectorCount,
@@ -69,6 +113,12 @@ data class PhysicalSector(
 
 }
 
+/**
+ * 磁盘管理器
+ *
+ * @property disk 磁盘
+ * @property blockSize 块大小
+ */
 class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
 
     private val totalBlock: Int = disk.totalSectorCount
@@ -136,6 +186,10 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         return true
     }
 
+    /**
+     * 展示磁盘占用
+     *
+     */
     fun displayFreeBlock() {
         println("剩余空闲块数：$restBlock")
         freeBlocks.forEach {
