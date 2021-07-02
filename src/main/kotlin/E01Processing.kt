@@ -54,6 +54,11 @@ class PCBLinkedList : Iterable<PCB> {
      */
     private val pcbHeader: PCB = PCB("", 0, 0, ProcessStatus.E)
 
+    /**
+     * 添加进程控制块
+     *
+     * @param pcb 进程控制块
+     */
     fun addPCB(pcb: PCB) {
         var cur = pcbHeader.next
         var pre = pcbHeader
@@ -73,6 +78,11 @@ class PCBLinkedList : Iterable<PCB> {
         pre.next = pcb
     }
 
+    /**
+     * 按优先度获取队列首个PCB
+     *
+     * @return
+     */
     fun takeFirst(): PCB? {
         // 返回链表的第一个（我们已经保证队列第一个即为最大优先级的进程）
         return pcbHeader.next.also {
@@ -94,14 +104,30 @@ class PCBLinkedList : Iterable<PCB> {
 
 }
 
+/**
+ * 进程调度器
+ *
+ */
 class ProcessScheduler {
 
     private val pcbLinkedList: PCBLinkedList = PCBLinkedList()
 
+    /**
+     * 创建进程
+     *
+     * @param name 进程名
+     * @param priority 优先数
+     * @param time 运行时长
+     */
     fun createProcess(name: String, priority: Int, time: Long) {
         pcbLinkedList.addPCB(PCB(name, time, priority, ProcessStatus.E))
     }
 
+    /**
+     * 调度直行一次程序
+     *
+     * @return 有程序可调度返回true，否则返回false
+     */
     fun schedule(): Boolean {
         val pcb = pcbLinkedList.takeFirst() ?: return false  // 当PCB为null的时候执行"return false"
         pcb.priority--
@@ -117,6 +143,10 @@ class ProcessScheduler {
         return true
     }
 
+    /**
+     * 展示进程列表
+     *
+     */
     fun showProcessList() {
         println("-".repeat(50))
         print("Process".padEnd(20))

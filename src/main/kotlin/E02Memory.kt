@@ -4,16 +4,33 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.math.ceil
 
+/**
+ * 位图
+ *
+ * @property bitsCount 位数
+ */
 class Bitmap private constructor(private val bitsCount: Int) {
 
     private val bitmap = ByteArray(ceil(bitsCount / 8.0f).toInt())
 
+    /**
+     * 获取指定位是否被置位
+     *
+     * @param pos 位的位置
+     * @return
+     */
     operator fun get(pos: Int): Boolean {
         val pByte = pos / 8
         val offset = pos % 8
         return (bitmap[pByte] and (((1 shl (7 - offset)).toByte()))) != 0.toByte()
     }
 
+    /**
+     * 将指定位置位或取消置位
+     *
+     * @param pos 位的位置
+     * @param value 置位值
+     */
     operator fun set(pos: Int, value: Boolean) {
         val pByte = pos / 8
         val offset = pos % 8
@@ -25,9 +42,19 @@ class Bitmap private constructor(private val bitsCount: Int) {
         }
     }
 
+    /**
+     * 位示包含位数
+     *
+     */
     fun size() = bitsCount
 
     companion object {
+        /**
+         * 自位数创建位图
+         *
+         * @param count 位数
+         * @return
+         */
         @JvmStatic
         fun fromBitsCount(count: Int): Bitmap {
             return Bitmap(count)
@@ -36,6 +63,13 @@ class Bitmap private constructor(private val bitsCount: Int) {
 
 }
 
+/**
+ * 作业
+ *
+ * @property name 作业名
+ * @property jobSize 作业占用内存大小
+ * @property pages 作业内存页
+ */
 data class Job(
     val name: String,
     val jobSize: Int,
@@ -60,12 +94,28 @@ data class Job(
     }
 }
 
+/**
+ * 内存管理者
+ *
+ * @property blockSize 块大小
+ * @constructor
+ *
+ *
+ * @param blockCount 块数目
+ */
 class MemoryManager(blockCount: Int, val blockSize: Int) {
 
     private val memoryBitmap = Bitmap.fromBitsCount(blockCount)
     private var restBlocks = blockCount
     private val jobs = mutableListOf<Job>()
 
+    /**
+     * 创建作业
+     *
+     * @param name 作业名
+     * @param jobSize 作业大小
+     * @return
+     */
     fun newJob(name: String, jobSize: Int): Boolean {
         val sizeInPage = ceil(jobSize.toDouble() / blockSize).toInt()
 
@@ -91,6 +141,12 @@ class MemoryManager(blockCount: Int, val blockSize: Int) {
         }
     }
 
+    /**
+     * 释放/销毁作业
+     *
+     * @param name 作业名
+     * @return 如存在相应作业并销毁返回true，如不存在返回false
+     */
     fun freeJob(name: String): Boolean {
         val id = jobs.indexOfFirst { it.name == name }
         if (id < 0) return false
@@ -100,6 +156,10 @@ class MemoryManager(blockCount: Int, val blockSize: Int) {
         return true
     }
 
+    /**
+     * 展示内存占用情况
+     *
+     */
     fun display() {
         // 这样效率蛮低的
         print("当前内存块位示图：")

@@ -121,6 +121,13 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
     private val files = mutableListOf<FAT>()
     private var restBlock = totalBlock
 
+    /**
+     * 创建文件
+     *
+     * @param fileName 文件名
+     * @param size 文件大小
+     * @return
+     */
     fun createFile(fileName: String, size: Int): Boolean {
         val sizeInBlock = ceil((size / blockSize).toDouble()).toInt()
         println("正在创建文件：$fileName")
@@ -153,10 +160,21 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         return true
     }
 
+    /**
+     * 寻道
+     *
+     * @param block
+     */
     private fun seekDisk(block: Int) {
         disk.seek(block)
     }
 
+    /**
+     * 删除文件
+     *
+     * @param fileName 文件名
+     * @return
+     */
     fun deleteFile(fileName: String): Boolean {
         val id = files.indexOfFirst { it.fileName == fileName }
         if (id < 0) return false
