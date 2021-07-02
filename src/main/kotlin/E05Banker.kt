@@ -2,6 +2,14 @@ package ose.processing
 
 import kotlin.IllegalArgumentException
 
+/**
+ * 设备
+ *
+ * @property name 设备名
+ * @property total 设备总量
+ * @property used 已占用设备
+ * @property available 可用设备
+ */
 data class Device(
     val name: String,
     val total: Int,
@@ -11,6 +19,13 @@ data class Device(
         get() = total - used
 }
 
+/**
+ * 设备分配表
+ *
+ * @property process 进程名
+ * @property maxDevicesCount 最大设备数目
+ * @property devicesCount 已占有设备数目
+ */
 data class DATItem(
     val process: String,
     val maxDevicesCount: IntArray,
@@ -35,6 +50,18 @@ data class DATItem(
     }
 }
 
+/**
+ * 设备资源矩阵
+ *
+ * 作为[ose.processing.DeviceManager.getDevicesMatrix]的返回中间结果。
+ * 建议使用结构语法使用返回值。
+ *
+ * @property available 可用设备矩阵
+ * @property maxDevices 最大设备占用数矩阵
+ * @property holdDevices 已占有设备数矩阵
+ * @property needDevices 仍需设备数据帧
+ * @property finish 进程完成矩阵，总为false，方便用于计算生成的临时数组
+ */
 data class DevicesMatrix(
     val available: Array<Int>,
     val maxDevices: Array<IntArray>,
@@ -67,6 +94,14 @@ data class DevicesMatrix(
     }
 }
 
+/**
+ * 设备管理器
+ *
+ * @constructor
+ * 根据给定的设备列表创建设备管理器
+ *
+ * @param devices 给定设备列表
+ */
 class DeviceManager(devices: List<Device>) {
 
     private val allDevices = devices.toMutableList()
@@ -138,8 +173,18 @@ class DeviceManager(devices: List<Device>) {
         return finish.all { it }
     }
 
+    /**
+     * 获取设备顺序序列
+     *
+     */
     fun getDevicesSequence() = allDevices.map { it.name }
 
+    /**
+     * 创建进程
+     *
+     * @param process 进程名
+     * @param maxDevices 最大设备数
+     */
     fun createProcess(process: String, maxDevices: IntArray) {
         if (dat.any { it.process == process })
             throw IllegalArgumentException("已存在的进程")
@@ -148,6 +193,15 @@ class DeviceManager(devices: List<Device>) {
         dat.add(DATItem(process, maxDevices, IntArray(deviceKindCount)))
     }
 
+    /**
+     * 请求设备
+     *
+     * 如果该次请求会使得系统进入不安全态，那么请求会被拒绝，返回false。
+     *
+     * @param process 欲请求设备的进程
+     * @param devices 设备请求数
+     * @return 是否请求成功
+     */
     fun requireDevices(process: String, devices: IntArray): Boolean {
         // 如果保证其处于安全状态，即可分配设备
         val processId = dat.indexOfFirst { it.process == process }
@@ -164,6 +218,11 @@ class DeviceManager(devices: List<Device>) {
         return true
     }
 
+    /**
+     * 销毁进程并释放其占用的设备
+     *
+     * @param process 进程名
+     */
     fun destroyProcess(process: String) {
         val id = dat.indexOfFirst { it.process == process }
         if (id < 0) throw IllegalStateException("找不到对应进程")
@@ -174,6 +233,10 @@ class DeviceManager(devices: List<Device>) {
         }
     }
 
+    /**
+     * 展示设备使用情况
+     *
+     */
     fun displayDevices() {
         println("设备表：")
         allDevices.forEach { println("设备：${it.name}, 资源数：${it.available}, 已占用：${it.used}, 剩余可用：${it.available}") }
@@ -185,6 +248,10 @@ class DeviceManager(devices: List<Device>) {
 
 }
 
+/**
+ * 从标准输入读入一个整形数组，以空格分割。
+ *
+ */
 private fun inputIntArray() = readLine()?.split(" ")?.map {
     try {
         return@map it.toInt()
