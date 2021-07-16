@@ -262,12 +262,18 @@ private fun inputIntArray() = readLine()?.split(" ")?.map {
 
 fun main() {
 
+
     val deviceManager = DeviceManager(
-        listOf(
-            Device("A", 10, 0),
-            Device("B", 10, 0),
-            Device("C", 10, 0),
-        )
+        createDevicesList().let {
+            if (it.size == 0)
+                listOf(
+                    Device("A", 10, 0),
+                    Device("B", 10, 0),
+                    Device("C", 10, 0),
+                )
+            else
+                it
+        }
     )
 
     while (true) {
@@ -342,4 +348,31 @@ fun main() {
         }
     }
 
+}
+
+private fun createDevicesList(): MutableList<Device> {
+    val devices = mutableListOf<Device>()
+    println("请先创建一个设备列表，如果给定列表为空，则会创建默认设备")
+    while (true) {
+        println("请输入设备名(为空代表结束创建)：")
+        val name = readLine() ?: break
+        if (name.isEmpty()) break
+
+        println("请输入总数：")
+        val count = try {
+            readLine()?.toInt()
+        } catch (e: NumberFormatException) {
+            break
+        } ?: break
+
+        println("请输入已被占用数(可以忽略为0，可以认为是系统占用)：")
+        val used = try {
+            readLine()?.toInt()
+        } catch (e: NumberFormatException) {
+            0
+        } ?: 0
+
+        devices.add(Device(name, count, used))
+    }
+    return devices
 }
