@@ -9,14 +9,6 @@ int main(int argc, char const *argv[])
     else if (pid > 0)
     {
         printf("A, 子进程ID：%d\n", pid);
-    }
-    else // pid == 0
-    {
-        printf("B, 我是A创建的子进程\n");
-    }
-
-    if (pid > 0)
-    {
         pid = fork();
         if (pid < 0)
             printf("创建失败\n");
@@ -28,6 +20,10 @@ int main(int argc, char const *argv[])
         {
             printf("C, 我是A创建的子进程\n");
         }
+    }
+    else // pid == 0
+    {
+        printf("B, 我是A创建的子进程\n");
     }
 
     return 0;
