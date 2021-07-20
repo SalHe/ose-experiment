@@ -172,9 +172,9 @@ class MemoryManager(blockCount: Int, val blockSize: Int) {
 
         println("作业：")
         jobs.forEach { job ->
-            println("作业名：${job.name}, 页表(页 -> 块)：" + buildString {
+            println("作业名：${job.name}, 页表：" + buildString {
                 job.pages.forEachIndexed { index, i ->
-                    append("$index->$i ")
+                    append("$i ")
                 }
             })
         }
