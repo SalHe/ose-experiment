@@ -305,7 +305,7 @@ fun main() {
                 }
             }
             "S" -> {
-                println("请输入欲删除文件的文件名：")
+                println("请输入欲查询文件的文件名：")
                 val fileName = readLine() ?: continue
                 diskManager.findFile(fileName).let {
                     if (it == null) {
