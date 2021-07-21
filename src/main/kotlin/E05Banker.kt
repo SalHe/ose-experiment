@@ -113,8 +113,8 @@ class DeviceManager(devices: List<Device>) {
 
     private fun getDevicesMatrix(): DevicesMatrix {
         val available = allDevices.map { it.available }.toTypedArray()                     // 可用资源数
-        val maxDevices = dat.map { it.maxDevicesCount }.toTypedArray()                     // 最大资源数
-        val holdDevices = dat.map { it.devicesCount }.toTypedArray()                       // 已占有设备数
+        val maxDevices = dat.map { it.maxDevicesCount.copyOf() }.toTypedArray()                     // 最大资源数
+        val holdDevices = dat.map { it.devicesCount.copyOf() }.toTypedArray()                       // 已占有设备数
         val needDevices = Array<IntArray>(processCount) { processId ->                          // 需要设备数
             IntArray(deviceKindCount) { deviceId -> maxDevices[processId][deviceId] - holdDevices[processId][deviceId] }
         }
@@ -138,9 +138,11 @@ class DeviceManager(devices: List<Device>) {
         for (i in available.indices) {
             if (available[i] < devices[i])
                 return false
-            // available[i] -= devices[i]
+            available[i] -= devices[i]
+            holdDevices[id][i] += devices[i]
+            needDevices[id][i] -= devices[i]
         }
-        finish[id] = true
+        // finish[id] = true
 
         // 现在考虑为其他进程分配
         while (true) {
