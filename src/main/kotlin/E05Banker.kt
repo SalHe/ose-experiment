@@ -262,19 +262,27 @@ private fun inputIntArray() = readLine()?.split(" ")?.map {
 
 fun main() {
 
-
+    var example = false
     val deviceManager = DeviceManager(
         createDevicesList().let {
-            if (it.size == 0)
+            if (it.size == 0) {
+                example = true
                 listOf(
-                    Device("A", 10, 0),
-                    Device("B", 10, 0),
-                    Device("C", 10, 0),
+                    Device("A", 9, 0),
+                    Device("B", 3, 0),
+                    Device("C", 6, 0),
                 )
-            else
+            } else
                 it
         }
     )
+
+    if (example) {
+        deviceManager.createProcess("P1", intArrayOf(3, 2, 2))
+        deviceManager.createProcess("P2", intArrayOf(6, 1, 3))
+        deviceManager.createProcess("P3", intArrayOf(3, 1, 4))
+        deviceManager.createProcess("P4", intArrayOf(4, 2, 2))
+    }
 
     while (true) {
         println("< 按回车键继续 >")
