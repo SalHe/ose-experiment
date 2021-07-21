@@ -244,9 +244,26 @@ class DiskManager(private val disk: Disk, private val blockSize: Int = 1) {
         freeBlocks.forEach {
             println("起始空闲块：${it.block}，块数：${it.count}")
         }
-        files.forEach {
-            println("文件名：${it.fileName}，文件占用大小：${it.size}，占用块表：${it.blockTable.joinToString()}")
-        }
+        files.forEach(this::showFile)
+    }
+
+    /**
+     * 展示FAT
+     *
+     * @param file FAT项
+     */
+    fun showFile(file: FAT) {
+        println("文件名：${file.fileName}，文件占用大小：${file.size}，占用块表：${file.blockTable.joinToString()}")
+    }
+
+    /**
+     * 查找文件
+     *
+     * @param fileName 文件名
+     * @return
+     */
+    fun findFile(fileName: String): FAT? {
+        return files.firstOrNull { it.fileName == fileName }
     }
 
 }
@@ -262,7 +279,7 @@ fun main() {
 
     while (true) {
         diskManager.showUsageInfo()
-        println("N.创建文件 D.删除文件 Q.退出")
+        println("N.创建文件 D.删除文件 S.选择文件并显示其块表 Q.退出")
         val command = readLine() ?: continue
         when (command.uppercase()) {
             "N" -> {
@@ -285,6 +302,17 @@ fun main() {
                     println("删除成功")
                 } else {
                     println("删除失败，文件不存在")
+                }
+            }
+            "S" -> {
+                println("请输入欲删除文件的文件名：")
+                val fileName = readLine() ?: continue
+                diskManager.findFile(fileName).let {
+                    if (it == null) {
+                        println("未找到文件")
+                    } else {
+                        diskManager.showFile(it)
+                    }
                 }
             }
             "Q" -> {
