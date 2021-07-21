@@ -278,8 +278,8 @@ fun main() {
     // diskManager.displayFreeBlock()
 
     while (true) {
-        diskManager.showUsageInfo()
-        println("N.创建文件 D.删除文件 S.选择文件并显示其块表 Q.退出")
+        // diskManager.showUsageInfo()
+        println("N.创建文件 D.删除文件 S.选择文件并显示其块表 L.列出磁盘占用情况 Q.退出")
         val command = readLine() ?: continue
         when (command.uppercase()) {
             "N" -> {
@@ -314,6 +314,9 @@ fun main() {
                         diskManager.showFile(it)
                     }
                 }
+            }
+            "L" -> {
+                diskManager.showUsageInfo()
             }
             "Q" -> {
                 break
